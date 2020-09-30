@@ -349,6 +349,9 @@ LDACBT_API int  ldacBT_alter_eqmid_priority( HANDLE_LDAC_BT hLdacBt, int priorit
 LDACBT_API int  ldacBT_encode( HANDLE_LDAC_BT hLdacBt, void *p_pcm, int *pcm_used,
                                unsigned char *p_stream, int *stream_sz, int *frame_num );
 
+LDACBT_API int  ldacBT_decode( HANDLE_LDAC_BT hLdacBt, unsigned char* p_bs, void *p_pcm,
+                               LDACBT_SMPL_FMT_T fmt, int bs_bytes, int* used_bytes, int* wrote_bytes );
+
 /* Acquisition of previously established error code.
  * The LDAC handle must be allocated by API function ldacBT_get_handle() prior to calling this function.
  * The details of error code are described below at the end of this header file.
