@@ -188,6 +188,7 @@ struct _audio_channel_sub_ldac {
 struct _audio_channel_ldac {
     int ich;
     int frmana_cnt;
+    int unk3;
     int sfc_mode;
     int sfc_bitlen;
     int sfc_offset;
@@ -209,6 +210,8 @@ struct _audio_block_ldac {
     int blk_nchs;
     int nbands;
     int nqus;
+    int unk1;
+    int unk2;
     int grad_mode;
     int grad_qu_l;
     int grad_qu_h;

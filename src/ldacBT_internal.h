@@ -173,6 +173,7 @@ typedef struct _st_ldacbt_handle {
     int cm; /* Channel Mode */
     int cci; /* Channel Config Index */
     int transport;   /* Transport Stream ( with frame header) */
+    int unk4;
     /* buffer for "ldac_transport_frame" sequence */
     LDACBT_TRANSPORT_FRM_BUF ldac_trns_frm_buf;
     /* buffer for input pcm */
