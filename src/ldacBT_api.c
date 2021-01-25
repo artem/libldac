@@ -52,6 +52,8 @@ LDACBT_API void ldacBT_free_handle( HANDLE_LDAC_BT hLdacBT )
         /* close ldaclib handle */
         if( hLdacBT->proc_mode == LDACBT_PROCMODE_ENCODE ){
             ldaclib_free_encode( hLdacBT->hLDAC );
+        }else if( hLdacBT->proc_mode == LDACBT_PROCMODE_DECODE ){
+            ldaclib_free_decode( hLdacBT->hLDAC );
         }
         /* free ldaclib handle */
         ldaclib_free_handle( hLdacBT->hLDAC );
@@ -70,6 +72,8 @@ LDACBT_API void ldacBT_close_handle( HANDLE_LDAC_BT hLdacBT )
         /* close ldaclib handle */
         if( hLdacBT->proc_mode == LDACBT_PROCMODE_ENCODE ){
             ldaclib_free_encode( hLdacBT->hLDAC );
+        }else if( hLdacBT->proc_mode == LDACBT_PROCMODE_DECODE ){
+            ldaclib_free_decode( hLdacBT->hLDAC );
         }
         /* clear error code */
         ldaclib_clear_error_code(hLdacBT->hLDAC);
@@ -103,7 +107,8 @@ LDACBT_API int ldacBT_get_sampling_freq( HANDLE_LDAC_BT hLdacBT )
     if( hLdacBT == NULL ){
         return LDACBT_E_FAIL;
     }
-    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE )
+    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE &&
+        hLdacBT->proc_mode != LDACBT_PROCMODE_DECODE )
     {
         hLdacBT->error_code_api = LDACBT_ERR_HANDLE_NOT_INIT;
         return LDACBT_E_FAIL;
@@ -117,7 +122,8 @@ LDACBT_API int  ldacBT_get_bitrate( HANDLE_LDAC_BT hLdacBT )
     if( hLdacBT == NULL ){
         return LDACBT_E_FAIL;
     }
-    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE )
+    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE &&
+        hLdacBT->proc_mode != LDACBT_PROCMODE_DECODE )
     {
         hLdacBT->error_code_api = LDACBT_ERR_HANDLE_NOT_INIT;
         return LDACBT_E_FAIL;
