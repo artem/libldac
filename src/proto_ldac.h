@@ -55,6 +55,8 @@ DECLFUNC void pack_frame_header_ldac(int, int, int, int, STREAM *);
 DECLFUNC int pack_raw_data_frame_ldac(SFINFO *, STREAM *, int *, int *);
 DECLFUNC int pack_null_data_frame_ldac(SFINFO *, STREAM *, int *, int *);
 
+/* unpack_ldac.c */
+DECLFUNC void unpack_frame_header_ldac(int *, int *, int *, int *, STREAM *);
 
 /* tables_ldac.c */
 DECLFUNC int get_block_nchs_ldac(int);
