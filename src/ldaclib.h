@@ -134,7 +134,6 @@ DECLSPEC LDAC_RESULT ldaclib_clear_internal_error_code(HANDLE_LDAC);
 
 #define LDAC_ERR_ILL_SYNCWORD             516
 #define LDAC_ERR_ILL_SMPL_FORMAT          517
-#define LDAC_ERR_ILL_DECODE               518
 
 #define LDAC_ERR_ASSERT_SAMPLING_RATE     530
 #define LDAC_ERR_ASSERT_SUP_SAMPLING_RATE 531

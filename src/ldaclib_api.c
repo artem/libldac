@@ -662,6 +662,16 @@ HANDLE_LDAC hData)
     return LDAC_S_OK;
 }
 
+DECLSPEC LDAC_RESULT ldaclib_free_decode(
+HANDLE_LDAC hData)
+{
+    if (hData->sfinfo.p_mempos == NULL) {
+        free_decode_ldac(&hData->sfinfo);
+    }
+
+    return LDAC_S_OK;
+}
+
 /***************************************************************************************************
     Encode
 ***************************************************************************************************/

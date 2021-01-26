@@ -631,7 +631,7 @@ LDACBT_API int ldacBT_encode( HANDLE_LDAC_BT hLdacBT, void *p_pcm, int *pcm_used
     return LDACBT_S_OK;
 }
 
-LDACBT_API int ldacBT_decode( HANDLE_LDAC_BT hLdacBt, unsigned char *p_bs, void *p_pcm, 
+LDACBT_API int ldacBT_decode( HANDLE_LDAC_BT hLdacBt, unsigned char *p_bs, void *p_pcm,
                           LDACBT_SMPL_FMT_T fmt, int bs_bytes, int *used_bytes, int *wrote_bytes)
 
 {
@@ -684,11 +684,11 @@ LDACBT_API int ldacBT_decode( HANDLE_LDAC_BT hLdacBt, unsigned char *p_bs, void 
         return LDACBT_E_FAIL;
     }
 
-    cm = ldacBT_cci_to_cm_weird_ret(cci);
+    cm = ldacBT_cci_to_cm(cci); // FIXME weird ret
     if ((hLdacBt->unk4 != 0) &&
         (local_10 = ldaclib_check_frame_header(hLdacBt -> hLDAC, sfid, cci),
             local_10 < 0)) {
-        ldaclib_get_sampling_rate(sfid, hLdacBt -> pcm);
+        ldaclib_get_sampling_rate(sfid, &hLdacBt->pcm.sf);
         local_10 = ldacBT_init_handle_decode(hLdacBt, cm, hLdacBt -> pcm.sf, hLdacBt -> nshift, 0, 0);
         if (local_10 != 0) {
             return LDACBT_E_FAIL;
