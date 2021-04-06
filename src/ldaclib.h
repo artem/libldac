@@ -79,6 +79,7 @@ DECLSPEC LDAC_RESULT ldaclib_free_handle(HANDLE_LDAC);
 DECLSPEC LDAC_RESULT ldaclib_set_config_info(HANDLE_LDAC, int, int, int, int);
 DECLSPEC LDAC_RESULT ldaclib_get_config_info(HANDLE_LDAC, int *, int *, int *, int *);
 DECLSPEC LDAC_RESULT ldaclib_set_frame_header(HANDLE_LDAC, unsigned char *, int, int, int, int);
+DECLSPEC LDAC_RESULT ldaclib_get_frame_header(HANDLE_LDAC, unsigned char *, int *, int *, int *, int *);
 
 /* Encoder API Functions */
 DECLSPEC LDAC_RESULT ldaclib_get_encode_setting(int, int, int *, int *, int *, int *, int *, int *, int *);

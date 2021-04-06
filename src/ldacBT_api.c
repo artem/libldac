@@ -52,6 +52,8 @@ LDACBT_API void ldacBT_free_handle( HANDLE_LDAC_BT hLdacBT )
         /* close ldaclib handle */
         if( hLdacBT->proc_mode == LDACBT_PROCMODE_ENCODE ){
             ldaclib_free_encode( hLdacBT->hLDAC );
+        }else if( hLdacBT->proc_mode == LDACBT_PROCMODE_DECODE ){
+            ldaclib_free_decode( hLdacBT->hLDAC );
         }
         /* free ldaclib handle */
         ldaclib_free_handle( hLdacBT->hLDAC );
@@ -70,6 +72,8 @@ LDACBT_API void ldacBT_close_handle( HANDLE_LDAC_BT hLdacBT )
         /* close ldaclib handle */
         if( hLdacBT->proc_mode == LDACBT_PROCMODE_ENCODE ){
             ldaclib_free_encode( hLdacBT->hLDAC );
+        }else if( hLdacBT->proc_mode == LDACBT_PROCMODE_DECODE ){
+            ldaclib_free_decode( hLdacBT->hLDAC );
         }
         /* clear error code */
         ldaclib_clear_error_code(hLdacBT->hLDAC);
@@ -103,7 +107,8 @@ LDACBT_API int ldacBT_get_sampling_freq( HANDLE_LDAC_BT hLdacBT )
     if( hLdacBT == NULL ){
         return LDACBT_E_FAIL;
     }
-    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE )
+    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE &&
+        hLdacBT->proc_mode != LDACBT_PROCMODE_DECODE )
     {
         hLdacBT->error_code_api = LDACBT_ERR_HANDLE_NOT_INIT;
         return LDACBT_E_FAIL;
@@ -117,7 +122,8 @@ LDACBT_API int  ldacBT_get_bitrate( HANDLE_LDAC_BT hLdacBT )
     if( hLdacBT == NULL ){
         return LDACBT_E_FAIL;
     }
-    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE )
+    if( hLdacBT->proc_mode != LDACBT_PROCMODE_ENCODE &&
+        hLdacBT->proc_mode != LDACBT_PROCMODE_DECODE )
     {
         hLdacBT->error_code_api = LDACBT_ERR_HANDLE_NOT_INIT;
         return LDACBT_E_FAIL;
@@ -623,4 +629,110 @@ LDACBT_API int ldacBT_encode( HANDLE_LDAC_BT hLdacBT, void *p_pcm, int *pcm_used
     }
 
     return LDACBT_S_OK;
+}
+
+LDACBT_API int ldacBT_decode( HANDLE_LDAC_BT hLdacBt, unsigned char *p_bs, void *p_pcm,
+                          LDACBT_SMPL_FMT_T fmt, int bs_bytes, int *used_bytes, int *wrote_bytes)
+
+{
+    LDAC_RESULT result;
+    int frm_status;
+    int frmlen;
+    int cci;
+    int sfid;
+    int cm;
+    int ret;
+
+    if (hLdacBt == NULL) {
+        return LDACBT_E_FAIL;
+    }
+
+    if (hLdacBt->proc_mode != LDACBT_PROCMODE_DECODE) {
+        hLdacBt->error_code_api = 1000;
+        ret = LDACBT_E_FAIL;
+    }
+
+    if (p_bs == NULL || p_pcm == NULL || used_bytes == NULL || wrote_bytes == NULL) {
+        hLdacBt->error_code_api = LDACBT_ERR_ILL_PARAM;
+        return LDACBT_E_FAIL;
+    }
+
+    if (bs_bytes < 5) {
+        hLdacBt->error_code_api = LDAC_ERR_INPUT_BUFFER_SIZE;
+        return LDACBT_E_FAIL;
+    }
+
+    hLdacBt->error_code_api = ldacBT_assert_sample_format(fmt);
+    if (hLdacBt->error_code_api != 0) {
+        return LDACBT_E_FAIL;
+    }
+
+    *used_bytes = 0;
+    *wrote_bytes = 0;
+    ret = 0;
+    result = ldaclib_get_frame_header(hLdacBt->hLDAC, p_bs, &sfid, &cci, &frmlen, &frm_status);
+    if (result < 0) {
+        hLdacBt->error_code_api = LDACBT_GET_LDACLIB_ERROR_CODE;
+        return LDACBT_E_FAIL;
+    }
+    hLdacBt->error_code_api = ldacBT_assert_cci(cci);
+
+    if (hLdacBt->error_code_api != 0) {
+        return LDACBT_E_FAIL;
+    }
+
+    cm = ldacBT_cci_to_cm(cci); // FIXME weird ret
+    if ((hLdacBt->unk4 != 0) &&
+        (result = ldaclib_check_frame_header(hLdacBt->hLDAC, sfid, cci),
+            result < 0)) {
+        ldaclib_get_sampling_rate(sfid, &hLdacBt->pcm.sf);
+        result = ldacBT_init_handle_decode(hLdacBt, cm, hLdacBt->pcm.sf, hLdacBt->nshift, 0, 0);
+        if (result != 0) {
+            return LDACBT_E_FAIL;
+        }
+        hLdacBt->error_code_api = 0x28;
+        ret = LDACBT_E_FAIL;
+    }
+    result = ldaclib_set_config_info(hLdacBt->hLDAC, sfid, cci, frmlen, frm_status);
+    if (result < 0) {
+        hLdacBt->error_code_api = LDACBT_GET_LDACLIB_ERROR_CODE;
+        ret = LDACBT_E_FAIL;
+    } else {
+        hLdacBt->sfid = sfid;
+        hLdacBt->frmlen = frmlen;
+        hLdacBt->cm = cm;
+        hLdacBt->cci = cci;
+        hLdacBt->frm_status = frm_status;
+        if ((-1 < result) && (hLdacBt->unk4 == 0)) {
+            result = ldaclib_init_decode(hLdacBt->hLDAC, hLdacBt->nshift);
+            if (result < 0) {
+                hLdacBt->error_code_api = LDACBT_GET_LDACLIB_ERROR_CODE;
+                return LDACBT_E_FAIL;
+            }
+            hLdacBt->unk4 = 1;
+            result = ldaclib_get_frame_samples(hLdacBt->sfid, & hLdacBt->frm_samples);
+            if (result < 0) {
+                hLdacBt->error_code_api = 0x401;
+                return LDACBT_E_FAIL;
+            }
+        }
+        if (hLdacBt->unk4 == 0) {
+            ret = LDACBT_E_FAIL;
+        } else {
+            result = ldaclib_decode(hLdacBt->hLDAC, p_bs + 3, hLdacBt->pp_pcm,
+                bs_bytes + -3, used_bytes, (uint) fmt);
+            if ( *used_bytes != 0) {
+                *used_bytes += 3;
+            }
+            if (result < 0) {
+                hLdacBt->error_code_api = LDACBT_GET_LDACLIB_ERROR_CODE;
+                ret = LDACBT_E_FAIL;
+            } else {
+                hLdacBt->bitrate = *used_bytes * hLdacBt->pcm.sf / hLdacBt->frm_samples / (1000 / 8); // FIXME check validity
+                *wrote_bytes = ldacBT_prepare_pcm_decode(p_pcm, hLdacBt->pp_pcm, hLdacBt->frm_samples, hLdacBt->pcm.ch, fmt);
+            }
+        }
+    }
+
+    return ret;
 }

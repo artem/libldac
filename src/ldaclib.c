@@ -45,4 +45,6 @@
 #include "pack_ldac.c"
 #include "encode_ldac.c"
 
-
+/* Decoder Files */
+#include "unpack_ldac.c"
+#include "decode_ldac.c"

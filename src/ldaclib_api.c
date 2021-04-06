@@ -444,6 +444,31 @@ int frame_status)
 
 
 /***************************************************************************************************
+    Get Frame Header
+***************************************************************************************************/
+DECLSPEC LDAC_RESULT ldaclib_get_frame_header(
+HANDLE_LDAC hData,
+unsigned char *p_stream,
+int smplrate_id,
+int chconfig_id,
+int frame_length,
+int frame_status)
+{
+    int res;
+
+    res = unpack_frame_header_ldac(smplrate_id, chconfig_id, frame_length, frame_status,
+            (STREAM *)p_stream);
+    if (res == 0) {
+      hData->error_code = 0x204;
+      res = -0x7fffbffb;
+    }
+    else {
+      res = 0;
+    }
+    return res;
+}
+
+/***************************************************************************************************
     Encoder API Functions
 ***************************************************************************************************/
 
@@ -657,6 +682,16 @@ HANDLE_LDAC hData)
 {
     if (hData->sfinfo.p_mempos == NULL) {
         free_encode_ldac(&hData->sfinfo);
+    }
+
+    return LDAC_S_OK;
+}
+
+DECLSPEC LDAC_RESULT ldaclib_free_decode(
+HANDLE_LDAC hData)
+{
+    if (hData->sfinfo.p_mempos == NULL) {
+        free_decode_ldac(&hData->sfinfo);
     }
 
     return LDAC_S_OK;
